@@ -41,5 +41,24 @@ namespace RedwoodStocksAPI
 
 
 
+    public class StockResponse
+    {
+        [JsonProperty("1. symbol")]
+        public string symbol { get; set; }
+        
+        [JsonProperty("2. name")]
+        public string name { get; set; }
 
+        [JsonProperty("3. price")]
+        public float price { get; set; }
+        
+        [JsonProperty("4. exchange")]
+        public string exchange { get; set; }
+        
+        [JsonProperty("5. exchangeShortName")]
+        public string exchangeShortName { get; set; }
+        
+        [JsonProperty("6. type")]
+        public string type { get; set; }
+    }
 }
