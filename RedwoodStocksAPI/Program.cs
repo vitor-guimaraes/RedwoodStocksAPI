@@ -1,4 +1,6 @@
-﻿using RedwoodStocksAPI;
+﻿using CsvHelper;
+using RedwoodStocksAPI;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http.Headers;
@@ -24,9 +26,10 @@ namespace RedwoodStocksAPI
         private static async Task Main(string[] args)
         {
             //stock list
-            //var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };
-            var stockSymbols = new List<string> { "STA.L", "AFTR-WT", "SCT-DE" };
-            List<Stocks> stockPrices = new List<Stocks>();
+            var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };
+            //var stockSymbols = new List<string> { "STA.L", "AFTR-WT", "SCT-DE" };
+            //List<Stocks> stockPrices = new List<Stocks>();
+            List<StockResponse> stockPrices = new List<StockResponse>();
 
             //connection to stocks api
             using var client = new HttpClient();
@@ -34,13 +37,12 @@ namespace RedwoodStocksAPI
             // Add authentication header (e.g., API Key)
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-            //var path = client.BaseAddress = new Uri("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY");
+            //client.BaseAddress = new Uri("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY");
 
             //client.BaseAddress = new Uri("https://www.deckofcardsapi.com/api/");
-
             client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
-            var path = client.BaseAddress; 
-
+            
+            var path = client.BaseAddress;
 
             foreach (var symbol in stockSymbols)
             {
@@ -52,7 +54,8 @@ namespace RedwoodStocksAPI
 
                     //var url = $"{path}stock/list?apikey={apiKey}";
                     //var url = $"{path}etf/list?apikey={apiKey}";
-                    var url = $"{path}search?query={symbol}&apikey={apiKey}";
+                    //var url = $"{path}search?query={symbol}&apikey={apiKey}";
+                    var url = $"{path}quote/{symbol}?apikey={apiKey}";
 
                     HttpResponseMessage response = await client.GetAsync(url);
                     response.EnsureSuccessStatusCode();
@@ -61,10 +64,11 @@ namespace RedwoodStocksAPI
                     string json = await response.Content.ReadAsStringAsync();
                     Console.WriteLine(json);
 
+                    //deserialize the data
                     //dynamic jsonData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
                     //Console.WriteLine(jsonData);
-
-                    //Stocks stocks = JsonSerializer.Deserialize<Stocks>(json);
+                    //var stockData = JsonSerializer.Deserialize<StockData>(json);
+                    //List<StockData> stocks = new List<StockData>();
 
                     List<StockResponse> stocks = JsonSerializer.Deserialize<List<StockResponse>>(json);
                     Console.WriteLine($"Date: {DateTime.Now}");
@@ -84,32 +88,43 @@ namespace RedwoodStocksAPI
 
                         //writes to txt file
                         //string output = $"{deck.deck_id}, {deck.success}, {deck.shuffled}";
+                        //string output = $"{DateTime.Now}, {symbol}, ";
                         string output = $"{DateTime.Now}, {stock.name}, {stock.price}";
 
-                        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                        //using (StreamWriter writer = new StreamWriter(desktopPath, append: false))
+                        stockPrices.Add(stock);
+                        //string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                        ////using (StreamWriter writer = new StreamWriter(desktopPath, append: false))
+                        ////{
+                        ////    writer.WriteLine("Date, ShareName, Value");
+                        ////}
+                        //string folderPath = Path.Combine(desktopPath, "Output");
+
+
+                        //using (StreamWriter file = new StreamWriter("yourfile.txt", true)) // true enables append mode
                         //{
-                        //    writer.WriteLine("Date, ShareName, Value");
+                        //    file.Write("your text");
                         //}
-                        string folderPath = Path.Combine(desktopPath, "Output");
 
-                        if (!Directory.Exists(folderPath))
-                        {
-                            Directory.CreateDirectory(folderPath);
-                        }
+                        //if (!Directory.Exists(folderPath))
+                        //{
+                        //    Directory.CreateDirectory(folderPath);
+                        //}
 
-                        string filePath = Path.Combine(folderPath, "deck_info.txt");
+                        //string filePath = Path.Combine(folderPath, "deck_info.txt");
 
-                        // If the file exists, generate a new file name with a numeric suffix
-                        int fileIndex = 1;
-                        while (File.Exists(filePath))
-                        {
-                            filePath = Path.Combine(folderPath, $"deck_info_{fileIndex}.txt");
-                            fileIndex++;
-                        }
+                        //// If the file exists, generate a new file name with a numeric suffix
+                        //int fileIndex = 1;
+                        //while (File.Exists(filePath))
+                        //{
+                        //    filePath = Path.Combine(folderPath, $"deck_info_{fileIndex}.txt");
+                        //    fileIndex++;
+                        //}
 
-                        await File.WriteAllTextAsync(filePath, output);
+                        //await File.WriteAllTextAsync(filePath, output);
+
                     }
+
+                    WriteToCsv(stockPrices);
                 }
                 catch (JsonException ex)
                 {
@@ -137,5 +152,24 @@ namespace RedwoodStocksAPI
             }
 
         }
+
+        public static void WriteToCsv(List<StockResponse> stockPrices)
+        {
+            using (var writer = new StreamWriter("stock_prices.csv"))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteHeader<StockResponse>();
+                csv.NextRecord();
+                foreach (var stockPrice in stockPrices)
+                {
+                    csv.WriteRecord(stockPrice);
+                    csv.NextRecord();
+                }
+            }
+
+            Console.WriteLine("Stock prices written to stock_prices.csv");
+        }
     }
+
 }
+
