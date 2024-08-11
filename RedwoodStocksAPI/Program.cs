@@ -29,7 +29,7 @@ namespace RedwoodStocksAPI
             var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };
             //var stockSymbols = new List<string> { "STA.L", "AFTR-WT", "SCT-DE" };
             //List<Stocks> stockPrices = new List<Stocks>();
-            List<StockResponse> stockPrices = new List<StockResponse>();
+            List<StockData> stockPrices = new List<StockData>();
 
             //connection to stocks api
             using var client = new HttpClient();
@@ -38,7 +38,6 @@ namespace RedwoodStocksAPI
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             //client.BaseAddress = new Uri("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY");
-
             //client.BaseAddress = new Uri("https://www.deckofcardsapi.com/api/");
             client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
             
@@ -85,13 +84,18 @@ namespace RedwoodStocksAPI
                         Console.WriteLine($"ShareName: {stock.name}");
                         Console.WriteLine($"Price: {stock.price}");
 
+                        StockData stockData = new StockData() { 
+                            Date = DateTime.Now,
+                            Name = stock.name,
+                            Price = stock.price,
+                            };
 
                         //writes to txt file
                         //string output = $"{deck.deck_id}, {deck.success}, {deck.shuffled}";
                         //string output = $"{DateTime.Now}, {symbol}, ";
                         string output = $"{DateTime.Now}, {stock.name}, {stock.price}";
 
-                        stockPrices.Add(stock);
+                        stockPrices.Add(stockData);
                         //string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                         ////using (StreamWriter writer = new StreamWriter(desktopPath, append: false))
                         ////{
@@ -125,6 +129,7 @@ namespace RedwoodStocksAPI
                     }
 
                     WriteToCsv(stockPrices);
+                    Write(stockPrices);
                 }
                 catch (JsonException ex)
                 {
@@ -153,12 +158,12 @@ namespace RedwoodStocksAPI
 
         }
 
-        public static void WriteToCsv(List<StockResponse> stockPrices)
+        public static void WriteToCsv(List<StockData> stockPrices)
         {
             using (var writer = new StreamWriter("stock_prices.csv"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csv.WriteHeader<StockResponse>();
+                csv.WriteHeader<StockData>();
                 csv.NextRecord();
                 foreach (var stockPrice in stockPrices)
                 {
@@ -168,6 +173,18 @@ namespace RedwoodStocksAPI
             }
 
             Console.WriteLine("Stock prices written to stock_prices.csv");
+        }
+
+        public static void Write(List<StockData> stockPrices)
+        {
+            var csvPath = Path.Combine(Environment.CurrentDirectory, $"STOCKS-{DateTime.Now.ToFileTime()}.csv");
+            using (var streamWriter = new StreamWriter(csvPath))
+            {
+                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+                {
+                    csvWriter.WriteRecords(stockPrices);
+                }
+            }
         }
     }
 

@@ -26,12 +26,12 @@ namespace RedwoodStocksAPI
             return JsonConvert.DeserializeObject<StockData>(response);
         }
 
-        public static void WriteToCsv(List<Stocks> stockPrices)
+        public static void WriteToCsv(List<StockData> stockPrices)
         {
             using (var writer = new StreamWriter("stock_prices.csv"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                csv.WriteHeader<Stocks>();
+                csv.WriteHeader<StockData>();
                 csv.NextRecord();
                 foreach (var stockPrice in stockPrices)
                 {
