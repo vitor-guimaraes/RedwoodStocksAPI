@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Nest;
 using System.Collections;
+using CsvHelper.Configuration;
 
 namespace RedwoodStocksAPI
 {
@@ -45,13 +46,24 @@ namespace RedwoodStocksAPI
 
     }
 
-    public class DeckResponse
+    public class StockDataClassMap: ClassMap<StockData>
     {
-        public bool success { get; set; }
-        public string deck_id { get; set; }
-        public bool shuffled { get; set; }
-        public int remaining { get; set; }
+        public StockDataClassMap()
+        {
+            Map(s => s.Date).Name("Date");
+            Map(s => s.Name).Name("ShareName");
+            Map(s => s.Price).Name("Value");
+
+        }
     }
+
+    //public class DeckResponse
+    //{
+    //    public bool success { get; set; }
+    //    public string deck_id { get; set; }
+    //    public bool shuffled { get; set; }
+    //    public int remaining { get; set; }
+    //}
 
     //public class StockData
     //{
