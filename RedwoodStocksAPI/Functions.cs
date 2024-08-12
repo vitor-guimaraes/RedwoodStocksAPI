@@ -16,6 +16,39 @@ namespace RedwoodStocksAPI
 
         private static readonly string apiKey = "YOUR_ALPHA_VANTAGE_API_KEY";
 
+
+        public static void WriteToCSV(List<StockData> stockPrices)
+        {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string folderPath = Path.Combine(desktopPath, "Output");
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            //string filePath = Path.Combine(folderPath, "STOCKS.txt");
+
+            //int fileIndex = 1;
+            //while (File.Exists(filePath))
+            //{
+            //    filePath = Path.Combine(folderPath, $"STOCKS{fileIndex}.txt");
+            //    fileIndex++;
+            //}
+
+            //var csvPath = Path.Combine(Environment.CurrentDirectory, $"STOCKS-{DateTime.Now.ToFileTime()}.csv");
+            //var csvPath = Path.Combine(Environment.CurrentDirectory, $"STOCKS.csv");
+            var csvPath = Path.Combine(folderPath, $"STOCKS.csv");
+            using (var streamWriter = new StreamWriter(csvPath))
+            {
+                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.CurrentCulture))
+                {
+                    csvWriter.Context.RegisterClassMap<StockDataClassMap>();
+                    csvWriter.WriteRecords(stockPrices);
+                }
+            }
+        }
+
         private static async Task<StockData> GetStockData(string symbol)
         {
             var client = new HttpClient();
@@ -26,7 +59,7 @@ namespace RedwoodStocksAPI
             return JsonConvert.DeserializeObject<StockData>(response);
         }
 
-        public static void WriteToCsv(List<StockData> stockPrices)
+        public static void WriteToCsvOLD(List<StockData> stockPrices)
         {
             using (var writer = new StreamWriter("stock_prices.csv"))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -42,5 +75,7 @@ namespace RedwoodStocksAPI
 
             Console.WriteLine("Stock prices written to stock_prices.csv");
         }
+
+
     }
 }
