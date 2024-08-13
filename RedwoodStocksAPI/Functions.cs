@@ -1,7 +1,9 @@
 ﻿using CsvHelper;
+using Nest;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Mail;
 using System.Text.Json;
 
 namespace RedwoodStocksAPI
@@ -113,7 +115,98 @@ namespace RedwoodStocksAPI
 
             Console.WriteLine("Stock prices written to stock_prices.csv");
         }
+        public static async Task<string> GetStockPriceAsync(string stockSymbol, string apiKey)
+        {
+            // Construct the API URL with the stock symbol and API key
+            string apiUrl = $"https://financialmodelingprep.com/api/v3/quote/{stockSymbol}?apikey={apiKey}";
 
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    // Send a GET request to the API
+                    var response = await client.GetAsync(apiUrl);
+
+                    // Check if the response was successful
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Read and return the response content as a string
+                        return await response.Content.ReadAsStringAsync();
+                    }
+                    else
+                    {
+                        // Log and throw an exception for failed requests
+                        string error = $"Error fetching stock price: {response.StatusCode}";
+                        LogError(error);
+                        throw new Exception(error);
+                    }
+                }
+                catch (HttpRequestException e)
+                {
+                    // Log any HTTP request errors
+                    LogError($"Request error: {e.Message}");
+                    throw;
+                }
+            }
+        }
+
+        // Logs errors to a text file
+        private static void LogError(string message)
+        {
+            // Append the error message to a log file with a timestamp
+            File.AppendAllText("error_log.txt", $"{DateTime.Now}: {message}{Environment.NewLine}");
+        }
+
+        public static void SendEmail(string message)
+        {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string folderPath = Path.Combine(desktopPath, "Output");
+            
+            // Setup mail message
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress("Papercut@papercut.com");
+            mail.To.Add("Papercut@user.com");
+            mail.Subject = "Test Email";
+            mail.Body = message;
+
+            //EXCEPTION IF FILE DOESNT EXIST
+            var attachment = new System.Net.Mail.Attachment($"{folderPath}/STOCKS.csv");
+            mail.Attachments.Add(attachment);
+
+            // Setup SMTP client to use localhost
+            SmtpClient smtpClient = new SmtpClient("localhost", 25);
+            smtpClient.Credentials = CredentialCache.DefaultNetworkCredentials;
+
+            //// Send email
+            //smtpClient.Send(mail);
+            //Console.WriteLine("Email sent successfully!");
+
+            //// Set up the email message
+            //MailMessage mail = new MailMessage();
+            //mail.From = new MailAddress("givega5263@eixdeal");
+            //mail.To.Add("guimvitor@gmail.com");
+            //mail.Subject = "Test Email";
+            //mail.Body = message;
+
+            //// Set up the SMTP client
+            //SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
+            //smtpClient.Credentials = new NetworkCredential("givega5263@eixdeal.com", "");
+            //smtpClient.EnableSsl = true;
+            //smtpClient.UseDefaultCredentials = false;
+
+            try
+            {
+                // Send the email
+                smtpClient.Send(mail);
+                Console.WriteLine("Email sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send email: {ex.Message}");
+            }
+        }
 
     }
+
 }
+
