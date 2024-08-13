@@ -8,8 +8,8 @@ namespace RedwoodStocksAPI
 {
     internal class Program
     {
-        //private static readonly string apiKey = "TScUaZy2mkXv9D0L1qSNRlNcHXZVn86M";
-        private static readonly string apiKey = "TScUaZy2mkXZVn86M";//test apikey
+        private static readonly string apiKey = "TScUaZy2mkXv9D0L1qSNRlNcHXZVn86M";
+        //private static readonly string apiKey = "TScUaZy2mkXZVn86M";//test apikey
         private static async Task Main(string[] args)
         {
             //stock list
@@ -59,6 +59,7 @@ namespace RedwoodStocksAPI
                             };
 
                             stockPrices.Add(stockData);
+                            
 
                             //writes to txt file
                             string output = $"{DateTime.Now}, {stock.name}, {stock.price}";
@@ -115,48 +116,7 @@ namespace RedwoodStocksAPI
 
         }
 
-
-
-        //}
-
-        //class Program
-        //{
-        //    // Define the API key for authentication (replace with your actual API key)
-        //    private const string ApiKey = "TScUaZy2mkXv9D0L1qSNRlNcHXZVn86M";
-
-        //    static async Task Main(string[] args)
-        //    {
-        //        // List of stock symbols to fetch prices for
-        //        List<string> stockSymbols = new List<string> { "AAPL", "GOOGL", "MSFT", "AMZN", "FB" };
-        //        string outputPath = "stock_prices.txt";  // Output file path
-
-        //        using (StreamWriter writer = new StreamWriter(outputPath))
-        //        {
-        //            foreach (var symbol in stockSymbols)
-        //            {
-        //                try
-        //                {
-        //                    // Fetch stock price using the Functions class
-        //                    string stockPrice = await Functions.GetStockPriceAsync(symbol, ApiKey);
-
-        //                    // Format the output as "Date, ShareName, Value"
-        //                    string output = $"{DateTime.Now}, {symbol}, {stockPrice}";
-
-        //                    // Display and write the output to the file
-        //                    Console.WriteLine(output);
-        //                    writer.WriteLine(output);
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    // Log any errors encountered while fetching prices
-        //                    Console.WriteLine($"Error retrieving price for {symbol}: {ex.Message}");
-        //                }
-        //            }
-        //        }
-
-        //        // Send email with the output and confirmation
-        //        EmailSender.SendDailyReport(outputPath);
-        //    }
+        
     }
 
 }
