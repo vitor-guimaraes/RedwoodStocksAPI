@@ -1,13 +1,8 @@
 ﻿using CsvHelper;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace RedwoodStocksAPI
 {
@@ -49,15 +44,58 @@ namespace RedwoodStocksAPI
             }
         }
 
-        private static async Task<StockData> GetStockData(string symbol)
+        public static async Task<StockData> FetchStockDataAsync(string symbol)
         {
-            var client = new HttpClient();
-            var path = client.BaseAddress = new Uri("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY");
-            //var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}";
-            var url = $"{path}&symbol={symbol}&apikey={apiKey}";
-            var response = await client.GetStringAsync(url);
-            return JsonConvert.DeserializeObject<StockData>(response);
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
+
+            try
+            {
+                var url = $"quote/{symbol}?apikey={apiKey}";
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                string json = await response.Content.ReadAsStringAsync();
+                var stocks = JsonSerializer.Deserialize<List<StockResponse>>(json);
+                var stock = stocks?.FirstOrDefault();
+
+                if (stock != null)
+                {
+                    return new StockData
+                    {
+                        Date = DateTime.Now,
+                        Name = stock.name,
+                        Price = stock.price,
+                    };
+                }
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error deserializing JSON for {symbol}: {ex.Message}");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Request error for {symbol}: {ex.Message}");
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    Console.WriteLine("Unauthorized access. Please check your API key.");
+                }
+            }
+
+            return null;
         }
+
+        //private static async Task<StockData> GetStockData(string symbol)
+
+        //{
+        //    var client = new HttpClient();
+        //    var path = client.BaseAddress = new Uri("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY");
+        //    //var url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}";
+        //    var url = $"{path}&symbol={symbol}&apikey={apiKey}";
+        //    var response = await client.GetStringAsync(url);
+        //    return JsonConvert.DeserializeObject<StockData>(response);
+        //}
 
         public static void WriteToCsvOLD(List<StockData> stockPrices)
         {

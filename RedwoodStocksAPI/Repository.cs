@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
-using Newtonsoft.Json;
-using Nest;
-using System.Collections;
-using CsvHelper.Configuration;
+﻿using CsvHelper.Configuration;
 
 namespace RedwoodStocksAPI
 {
@@ -52,7 +43,7 @@ namespace RedwoodStocksAPI
         {
             Map(s => s.Date).Name("Date");
             Map(s => s.Name).Name("ShareName");
-            Map(s => s.Price).Name("Value");
+            Map(s => s.Price).Name("Value (USD)");
 
         }
     }

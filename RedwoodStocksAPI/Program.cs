@@ -1,9 +1,4 @@
-﻿using CsvHelper;
-using RedwoodStocksAPI;
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.Http.Headers;
+﻿using System.Net;
 using System.Text.Json;
 
 
@@ -17,14 +12,14 @@ namespace RedwoodStocksAPI
         private static async Task Main(string[] args)
         {
             //stock list
-            var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };
+            var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
             List<StockData> stockPrices = new List<StockData>();
 
             //connection to stocks api
             using var client = new HttpClient();
 
             // Add authentication header (e.g., API Key)
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
             
