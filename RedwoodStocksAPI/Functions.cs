@@ -13,8 +13,7 @@ namespace RedwoodStocksAPI
 
         private static readonly string apiKey = "YOUR_ALPHA_VANTAGE_API_KEY";
 
-
-        public static void WriteToCSV(List<StockData> stockPrices)
+        public static void WriteToCSV(List<StockData> stockPrices, string timestamp)
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string folderPath = Path.Combine(desktopPath, "Output");
@@ -35,7 +34,7 @@ namespace RedwoodStocksAPI
 
             //var csvPath = Path.Combine(Environment.CurrentDirectory, $"STOCKS-{DateTime.Now.ToFileTime()}.csv");
             //var csvPath = Path.Combine(Environment.CurrentDirectory, $"STOCKS.csv");
-            var csvPath = Path.Combine(folderPath, $"STOCKS.csv");
+            var csvPath = Path.Combine(folderPath, $"STOCKS_{timestamp}.csv");
             using (var streamWriter = new StreamWriter(csvPath))
             {
                 using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.CurrentCulture))
@@ -151,52 +150,49 @@ namespace RedwoodStocksAPI
         }
 
         // Logs errors to a text file
-        private static void LogError(string message)
-        {
-            // Append the error message to a log file with a timestamp
-            File.AppendAllText("error_log.txt", $"{DateTime.Now}: {message}{Environment.NewLine}");
-        }
+        //private static void LogError(string message)
+        //{
+        //    // Append the error message to a log file with a timestamp
+        //    File.AppendAllText("error_log.txt", $"{DateTime.Now}: {message}{Environment.NewLine}");
+        //}
 
-        public static void SendEmail(string message)
+        public static void SendEmail(string message, string timestamp)
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string folderPath = Path.Combine(desktopPath, "Output");
-            
+            string filePath = Path.Combine(folderPath, $"STOCKS_{timestamp}.csv");
+
             // Setup mail message
             MailMessage mail = new MailMessage();
             mail.From = new MailAddress("Papercut@papercut.com");
             mail.To.Add("Papercut@user.com");
+            mail.To.Add("guimvitor@gmail.com");
             mail.Subject = "Test Email";
             mail.Body = message;
 
             //EXCEPTION IF FILE DOESNT EXIST
-            var attachment = new System.Net.Mail.Attachment($"{folderPath}/STOCKS.csv");
-            mail.Attachments.Add(attachment);
+            //if (File.Exists(filePath))
+            //{
+            //    var attachment = new System.Net.Mail.Attachment($"{folderPath}/STOCKS.csv");
+            //    mail.Attachments.Add(attachment);
+            //}
 
             // Setup SMTP client to use localhost
             SmtpClient smtpClient = new SmtpClient("localhost", 25);
             smtpClient.Credentials = CredentialCache.DefaultNetworkCredentials;
 
-            //// Send email
-            //smtpClient.Send(mail);
-            //Console.WriteLine("Email sent successfully!");
-
-            //// Set up the email message
-            //MailMessage mail = new MailMessage();
-            //mail.From = new MailAddress("givega5263@eixdeal");
-            //mail.To.Add("guimvitor@gmail.com");
-            //mail.Subject = "Test Email";
-            //mail.Body = message;
-
-            //// Set up the SMTP client
-            //SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
-            //smtpClient.Credentials = new NetworkCredential("givega5263@eixdeal.com", "");
-            //smtpClient.EnableSsl = true;
-            //smtpClient.UseDefaultCredentials = false;
-
             try
             {
                 // Send the email
+                if (File.Exists(filePath))
+                {
+                    var attachment = new System.Net.Mail.Attachment($"{folderPath}/STOCKS_{timestamp}.csv");
+                    mail.Attachments.Add(attachment);
+                }
+                else
+                {
+                    //send error log
+                }
                 smtpClient.Send(mail);
                 Console.WriteLine("Email sent successfully!");
             }
@@ -204,6 +200,23 @@ namespace RedwoodStocksAPI
             {
                 Console.WriteLine($"Failed to send email: {ex.Message}");
             }
+        }
+
+        public static void LogError(string message)
+        {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string logsFolderPath = Path.Combine(desktopPath, "logs");
+
+            // Create the "logs" directory if it doesn't exist
+            if (!Directory.Exists(logsFolderPath))
+            {
+                Directory.CreateDirectory(logsFolderPath);
+            }
+
+            string logFilePath = Path.Combine(logsFolderPath, "error_log.txt");
+
+            // Write the error message to the log file
+            File.AppendAllText(logFilePath, $"{DateTime.Now}: {message}{Environment.NewLine}");
         }
 
     }
