@@ -10,9 +10,6 @@ namespace RedwoodStocksAPI
 {
     public class Functions
     {
-
-        private static readonly string apiKey = "YOUR_ALPHA_VANTAGE_API_KEY";
-
         public static void WriteToCSV(List<StockData> stockPrices, string timestamp)
         {
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -45,47 +42,47 @@ namespace RedwoodStocksAPI
             }
         }
 
-        public static async Task<StockData> FetchStockDataAsync(string symbol)
-        {
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
+        //public static async Task<StockData> FetchStockDataAsync(string symbol)
+        //{
+        //    using var client = new HttpClient();
+        //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        //    client.BaseAddress = new Uri("https://financialmodelingprep.com/api/v3/");
 
-            try
-            {
-                var url = $"quote/{symbol}?apikey={apiKey}";
-                HttpResponseMessage response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
+        //    try
+        //    {
+        //        var url = $"quote/{symbol}?apikey={apiKey}";
+        //        HttpResponseMessage response = await client.GetAsync(url);
+        //        response.EnsureSuccessStatusCode();
 
-                string json = await response.Content.ReadAsStringAsync();
-                var stocks = JsonSerializer.Deserialize<List<StockResponse>>(json);
-                var stock = stocks?.FirstOrDefault();
+        //        string json = await response.Content.ReadAsStringAsync();
+        //        var stocks = JsonSerializer.Deserialize<List<StockResponse>>(json);
+        //        var stock = stocks?.FirstOrDefault();
 
-                if (stock != null)
-                {
-                    return new StockData
-                    {
-                        Date = DateTime.Now,
-                        Name = stock.name,
-                        Price = stock.price,
-                    };
-                }
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine($"Error deserializing JSON for {symbol}: {ex.Message}");
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Request error for {symbol}: {ex.Message}");
-                if (ex.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    Console.WriteLine("Unauthorized access. Please check your API key.");
-                }
-            }
+        //        if (stock != null)
+        //        {
+        //            return new StockData
+        //            {
+        //                Date = DateTime.Now,
+        //                Name = stock.name,
+        //                Price = stock.price,
+        //            };
+        //        }
+        //    }
+        //    catch (JsonException ex)
+        //    {
+        //        Console.WriteLine($"Error deserializing JSON for {symbol}: {ex.Message}");
+        //    }
+        //    catch (HttpRequestException ex)
+        //    {
+        //        Console.WriteLine($"Request error for {symbol}: {ex.Message}");
+        //        if (ex.StatusCode == HttpStatusCode.Unauthorized)
+        //        {
+        //            Console.WriteLine("Unauthorized access. Please check your API key.");
+        //        }
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         //private static async Task<StockData> GetStockData(string symbol)
 
