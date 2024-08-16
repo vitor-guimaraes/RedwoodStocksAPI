@@ -1,11 +1,9 @@
-﻿using Nest;
-using System.Diagnostics;
-using System.Linq;
+﻿using RedwoodStocksAPI.Application;
+using RedwoodStocksAPI.Domain.Models;
+using RedwoodStocksAPI.Domain.Services;
+using RedwoodStocksAPI.Extensions;
 using System.Net;
-using System.Text.Json;
 
-
-// -------------------------------------------------------------------------
 
 namespace RedwoodStocksAPI
 {
@@ -21,27 +19,25 @@ namespace RedwoodStocksAPI
 
         private static async Task Main(string[] args)
         {
-            //bool error = false;
-
             var error = await StocksPriceWriteToCSVErrorHandler();
-
 
             if (error == false)
             {
-                Functions.SendEmail("Success", timestamp);
+                SendEmailService.SendEmail("Success. Here are your stocks!", timestamp);
             }
             else
             {
-                Functions.SendEmail("Error. Check Logs", timestamp);
+                SendEmailService.SendEmail("Error. Please, check error logs.", timestamp);
             }
 
         }
 
-        private static async Task StocksPriceWriteToCSV()
+        private static async Task StockPriceWriteToCSV()
         {
             //stock list
-            //var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
-            var stockSymbols = new List<string> { "AAPL", "KRAMERICA", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
+            var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
+            //var stockSymbols = new List<string> { "AAPL", "KRAMERICA", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
+
             List<StockData> stockPrices = new List<StockData>();
 
             var path = "https://financialmodelingprep.com/api/v3/";
@@ -51,18 +47,13 @@ namespace RedwoodStocksAPI
                 FmpApi api = new FmpApi(apiKey, path);
                 var stockData = await api.GetQuoteAsync(symbol);
 
-                if (stockData is not null)
+                if (stockData.Name == "Information not found")
                 {
-                    stockPrices.Add(stockData);
+                    LogErrorService.LogError($"Could not find information about {symbol} stocks.");
                 }
-                else
-                {
-                    break;
-                }
+               stockPrices.Add(stockData);
             }
             stockPrices.WriteToCSV(folderPath, timestamp);
-
-            //Functions.WriteToCSV(stockPrices, timestamp);
         }
 
         private static async Task<bool> StocksPriceWriteToCSVErrorHandler()
@@ -71,7 +62,7 @@ namespace RedwoodStocksAPI
 
             try
             {
-                await StocksPriceWriteToCSV();
+                await StockPriceWriteToCSV();
             }
             catch (HttpRequestException ex)
             {
@@ -79,31 +70,30 @@ namespace RedwoodStocksAPI
 
                 if (ex.StatusCode == HttpStatusCode.Unauthorized)
                 {
+                    error = true;
                     Console.WriteLine("Unauthorized access. Please check your API key.");
-                    //File.AppendAllText("error_log.txt", $"{DateTime.Now}: {ex.Message}{Environment.NewLine}");
-                    Functions.LogError("Unauthorized access. Please check your API key");
+                    LogErrorService.LogError("Unauthorized access. Please check your API key");
 
                 }
                 else if (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
-                    Console.WriteLine($"Error retrieving data for : {ex.Message}");
-                    //File.AppendAllText("error_log.txt", $"{DateTime.Now}: {ex.Message}{Environment.NewLine}");
-                    Functions.LogError($"Error retrieving data for : {ex.Message}");
+                    error = true;
+                    Console.WriteLine($"Error. {ex.Message}");
+                    LogErrorService.LogError($"Error retrieving data. {ex.Message}");
                 }
                 else
                 {
+                    error = true;
                     Console.WriteLine($"Error: {ex.Message}");
-                    //File.AppendAllText("error_log.txt", $"{DateTime.Now}: {ex.Message}{Environment.NewLine}");
-                    Functions.LogError($"Error retrieving data: {ex.Message}");
+                    LogErrorService.LogError($"Error retrieving data: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
+                error = true;
                 Console.WriteLine($"Error: {ex.Message}");
-                //File.AppendAllText("error_log.txt", $"{DateTime.Now}: {ex.Message}{Environment.NewLine}");
-                Functions.LogError($"Error retrieving data: {ex.Message}");
+                LogErrorService.LogError($"Error retrieving data: {ex.Message}");
             }
-
             return error;
         }
 
