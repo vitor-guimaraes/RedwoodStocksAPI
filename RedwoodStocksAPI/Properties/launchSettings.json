@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "ConsoleApp": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "FMPAPIKey": "TScUaZy2mkXv9D0L1qSNRlNcHXZVn86M",
+        "testAPIKey": "TScUaZy2mkXv9D0L1q",
+        "path": "https://financialmodelingprep.com/api/v3/",
+        "stockSymbols": "AAPL,MSFT,GOOGL,AMZN,TSLA",
+        "testStockSymbols": "AAPL,KRAMERICA,GOOGL,AMZN,TSLA"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
-﻿using RedwoodStocksAPI.Application;
+﻿using Microsoft.Extensions.Configuration;
+using RedwoodStocksAPI.Application;
 using RedwoodStocksAPI.Domain.Models;
 using RedwoodStocksAPI.Domain.Services;
 using RedwoodStocksAPI.Extensions;
@@ -9,8 +10,8 @@ namespace RedwoodStocksAPI
 {
     internal class Program
     {
-        private static readonly string apiKey = "TScUaZy2mkXv9D0L1qSNRlNcHXZVn86M";
-        //private static readonly string apiKey = "TScUaZy2mkXZVn86M";//test apikey
+        static readonly string apiKey = Environment.GetEnvironmentVariable("FMPAPIKey");
+        //static readonly string apiKey = Environment.GetEnvironmentVariable("testAPIKey");
 
         public static readonly string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
@@ -34,26 +35,32 @@ namespace RedwoodStocksAPI
 
         private static async Task StockPriceWriteToCSV()
         {
-            //stock list
-            var stockSymbols = new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
-            //var stockSymbols = new List<string> { "AAPL", "KRAMERICA", "GOOGL", "AMZN", "TSLA" };// get pra pegar os simbolos
+            var stockSymbolsEnv = Environment.GetEnvironmentVariable("StockSymbols");
+            //var stockSymbolsEnv = Environment.GetEnvironmentVariable("testStockSymbols");
+            var path = Environment.GetEnvironmentVariable("path");
 
             List<StockData> stockPrices = new List<StockData>();
 
-            var path = "https://financialmodelingprep.com/api/v3/";
-
-            foreach (var symbol in stockSymbols)
+            if (!string.IsNullOrEmpty(stockSymbolsEnv))
             {
-                FmpApi api = new FmpApi(apiKey, path);
-                var stockData = await api.GetQuoteAsync(symbol);
+                var stockSymbols = stockSymbolsEnv.Split(',').ToList();
 
-                if (stockData.Name == "Information not found")
+                if (stockSymbols != null)
                 {
-                    LogErrorService.LogError($"Could not find information about {symbol} stocks.");
+                    foreach (var symbol in stockSymbols)
+                    {
+                        FmpApi api = new FmpApi(apiKey, path);
+                        var stockData = await api.GetQuoteAsync(symbol);
+
+                        if (stockData.Name == "Information not found")
+                        {
+                            LogErrorService.LogError($"Could not find information about {symbol} stocks.");
+                        }
+                        stockPrices.Add(stockData);
+                    }
+                    stockPrices.WriteToCSV(folderPath, timestamp);
                 }
-               stockPrices.Add(stockData);
             }
-            stockPrices.WriteToCSV(folderPath, timestamp);
         }
 
         private static async Task<bool> StocksPriceWriteToCSVErrorHandler()
