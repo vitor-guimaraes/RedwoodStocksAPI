@@ -17,8 +17,7 @@ namespace RedwoodStocksAPI.Domain.Services
             MailMessage mail = new MailMessage();
             mail.From = new MailAddress("Papercut@papercut.com");
             mail.To.Add("Papercut@user.com");
-            mail.To.Add("guimvitor@gmail.com");
-            mail.Subject = "Test Email";
+            mail.Subject = "Stocks Information";
             mail.Body = message;
 
             // Setup SMTP client to use localhost

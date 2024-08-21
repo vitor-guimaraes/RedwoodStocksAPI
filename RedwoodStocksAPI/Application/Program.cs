@@ -1,12 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
-using RedwoodStocksAPI.Application;
-using RedwoodStocksAPI.Domain.Models;
+﻿using RedwoodStocksAPI.Domain.Models;
 using RedwoodStocksAPI.Domain.Services;
 using RedwoodStocksAPI.Extensions;
 using System.Net;
 
 
-namespace RedwoodStocksAPI
+namespace RedwoodStocksAPI.Application
 {
     internal class Program
     {
@@ -33,11 +31,12 @@ namespace RedwoodStocksAPI
 
         }
 
-        private static async Task StockPriceWriteToCSV()
+        private static async Task StocksPriceWriteToCSV()
         {
             var stockSymbolsEnv = Environment.GetEnvironmentVariable("StockSymbols");
             //var stockSymbolsEnv = Environment.GetEnvironmentVariable("testStockSymbols");
-            var path = Environment.GetEnvironmentVariable("path");
+
+            var baseUrl = Environment.GetEnvironmentVariable("path");
 
             List<StockData> stockPrices = new List<StockData>();
 
@@ -49,7 +48,7 @@ namespace RedwoodStocksAPI
                 {
                     foreach (var symbol in stockSymbols)
                     {
-                        FmpApi api = new FmpApi(apiKey, path);
+                        FmpApi api = new FmpApi(apiKey, baseUrl);
                         var stockData = await api.GetQuoteAsync(symbol);
 
                         if (stockData.Name == "Information not found")
@@ -69,7 +68,7 @@ namespace RedwoodStocksAPI
 
             try
             {
-                await StockPriceWriteToCSV();
+                await StocksPriceWriteToCSV();
             }
             catch (HttpRequestException ex)
             {
